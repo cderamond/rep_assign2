@@ -36,7 +36,7 @@ data <- inner_join(data, exp, by = c("CROPDMGEXP" = "exp")) %>%
         mutate(CROPDMG = CROPDMG*multiplier) %>%
         select(-multiplier, -1) #this should've been a function, but well...
 # moving on totals and date figures
-data <- data %>%
+dataFinal <- data %>%
         separate(BGN_DATE, c("date", "garbage"), sep = -8, remove = T) %>%
         mutate(date = mdy(date), year = year(date),
                EVTYPE = as.factor(EVTYPE),
@@ -44,7 +44,9 @@ data <- data %>%
                Total_EconDmg = CROPDMG + PROPDMG) %>%
         select(year, EVTYPE, Total_HealthCases, Total_EconDmg) %>%
         group_by(EVTYPE, year) %>%
-        
+        summarise(HealthCases = sum(Total_HealthCases), 
+                  EconDmg = sum(Total_EconDmg))  %>%
+        arrange(desc(HealthCases), desc(EconDmg))
         
 
 ```
