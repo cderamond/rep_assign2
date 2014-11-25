@@ -1,0 +1,55 @@
+---
+title: 'Assignment 2: Exploring Storm database'
+author: "C. Deramond"
+output: html_document
+---
+
+## Synopsis
+
+a
+
+
+
+## Data Processing
+
+a
+
+```{r, cache=TRUE}
+# loading libraries
+library(ggplot2, warn.conflicts = F)
+library(dplyr, warn.conflicts = F)
+library(tidyr, warn.conflicts = F)
+library(lubridate, warn.conflicts = F)
+library(stringr, warn.conflicts = F)
+
+# data load
+data <- read.csv("./data/repdata-data-StormData.csv", stringsAsFactors=FALSE)
+# create small table with the factors for number conversion
+exp <- data.frame(exp = c("B", "K", "M", "H"), 
+                  multiplier = c(1E9, 1E3, 1E6, 1E2), 
+                  stringsAsFactors = F)
+# we make inner join in order to filter bad input and transform damage to real number
+data <- inner_join(data, exp, by = c("PROPDMGEXP" = "exp")) %>%
+        mutate(PROPDMG = PROPDMG*multiplier) %>%
+        select(-multiplier, -1)
+data <- inner_join(data, exp, by = c("CROPDMGEXP" = "exp")) %>%
+        mutate(CROPDMG = CROPDMG*multiplier) %>%
+        select(-multiplier, -1) #this should've been a function, but well...
+# moving on totals and date figures
+data <- data %>%
+        separate(BGN_DATE, c("date", "garbage"), sep = -8, remove = T) %>%
+        mutate(date = mdy(date), year = year(date),
+               EVTYPE = as.factor(EVTYPE),
+               Total_HealthCases = FATALITIES + INJURIES, 
+               Total_EconDmg = CROPDMG + PROPDMG) %>%
+        select(year, EVTYPE, Total_HealthCases, Total_EconDmg) %>%
+        group_by(EVTYPE, year) %>%
+        
+        
+
+```
+
+
+## Results
+
+a
