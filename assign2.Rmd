@@ -6,13 +6,14 @@ output: html_document
 
 ## Synopsis
 
-a
-
+In this document we'll tackle the storm database for a quick exploratory data analysis. 
 
 
 ## Data Processing
 
-a
+In order to answer briefly, we'll delineate the approach:
+
+- load the data an libraries.
 
 ```{r, cache=TRUE}
 # loading libraries
@@ -21,9 +22,16 @@ library(dplyr, warn.conflicts = F)
 library(tidyr, warn.conflicts = F)
 library(lubridate, warn.conflicts = F)
 library(stringr, warn.conflicts = F)
+library(data.table, warn.conflicts = F)
 
 # data load
 data <- read.csv("./data/repdata-data-StormData.csv", stringsAsFactors=FALSE)
+```
+
+Now, in order to clean the exponents, we'll join the tables by `PROPDMGEXP` and `CROPDMGEXP`, so to factor by the multiplier:
+
+
+```{r, cache=TRUE}
 # create small table with the factors for number conversion
 exp <- data.frame(exp = c("B", "K", "M", "H"), 
                   multiplier = c(1E9, 1E3, 1E6, 1E2), 
@@ -35,6 +43,15 @@ data <- inner_join(data, exp, by = c("PROPDMGEXP" = "exp")) %>%
 data <- inner_join(data, exp, by = c("CROPDMGEXP" = "exp")) %>%
         mutate(CROPDMG = CROPDMG*multiplier) %>%
         select(-multiplier, -1) #this should've been a function, but well...
+```
+
+
+Now, that we have clean date, we procceed to summarize in order to obtain our answers, following below rules:
+- As per Health Cases, we define a new variable: `Total_HealthCases = FATALITIES + INJURIES` as Fatalities and number of injured people
+- As per Economical Damages, we define: `Total_EconDmg = CROPDMG + PROPDMG` as the total damage is Crop lost plus Property damage.
+
+
+```{r, cache=TRUE}
 # moving on totals and date figures
 dataFinal <- data %>%
         separate(BGN_DATE, c("date", "garbage"), sep = -8, remove = T) %>%
@@ -43,15 +60,37 @@ dataFinal <- data %>%
                Total_HealthCases = FATALITIES + INJURIES, 
                Total_EconDmg = CROPDMG + PROPDMG) %>%
         select(year, EVTYPE, Total_HealthCases, Total_EconDmg) %>%
-        group_by(EVTYPE, year) %>%
+        group_by(EVTYPE) %>%
         summarise(HealthCases = sum(Total_HealthCases), 
                   EconDmg = sum(Total_EconDmg))  %>%
         arrange(desc(HealthCases), desc(EconDmg))
-        
-
+head(dataFinal)
 ```
+
 
 
 ## Results
 
-a
+As per the questions:
+
+**1. Across the United States, which types of events (as indicated in the EVTYPE variable) are most harmful with respect to population health?**
+
+
+We take our dataset and order it descendently, so to take the top 10: 
+```{r, cache=TRUE} 
+dataFinal <- data.table(dataFinal)
+head(dataFinal[order(-HealthCases)], n= 10)
+
+```
+
+
+
+**2. Across the United States, which types of events have the greatest economic consequences?**
+
+We repeat the procedure in order to take top 10 from *Economical Damage*
+
+```{r, cache=TRUE}
+head(dataFinal[ order(-EconDmg)], n= 10)
+
+```
+

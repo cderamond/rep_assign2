@@ -34,3 +34,7 @@ data <- data %>%
 # distMatrix <- dist(distRaw[, list(sum(Total_EconDmg), sum(Total_HealthCases)), by = EVTYPE])
 # clust <- hclust(distMatrix)
 # kdata <- kmeans(select(distRaw2, 2:3), centers = 20)
+
+gr <- ggplot(data = dataFinal)
+qplot(EVTYPE, EconDmg, data = head(dataFinal[ order(-EconDmg)], n= 10), geom = "bar", stat = "identity") +
+        qplot(EVTYPE, Healthcases, data = head(dataFinal[ order(-HealthCases)], n= 10), geom = "bar", stat = "identity")
